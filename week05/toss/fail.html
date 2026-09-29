@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 실패</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        h1 { color: #e53e3e; }
+    </style>
+</head>
+<body>
+    <h1>❌ 결제 실패</h1>
+    <p>결제 과정에서 오류가 발생했습니다. 상세 정보는 아래와 같습니다.</p>
+    
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>항목</th>
+                <th >값</th>
+            </tr>
+        </thead>
+        <tbody id="result-body"></tbody>
+    </table>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableBody = document.getElementById("result-body");
+
+        // 실패 시 전달받는 주요 파라미터 목록
+        // successUrl은 paymentKey, orderId, amount를 전달함
+        // failUrl은 code, message를 전달함
+        const paramsToDisplay = ["code", "message", "orderId", "paymentKey", "amount"];
+
+        paramsToDisplay.forEach(param => {
+            const value = urlParams.get(param);
+            if (value !== null) {
+                const row = `<tr><td>${param}</td><td>${value}</td></tr>`;
+                tableBody.innerHTML += row;
+            }
+        });
+
+        if (tableBody.innerHTML === "") {
+            tableBody.innerHTML = "<tr><td colspan='2'>전달된 데이터가 없습니다.</td></tr>";
+        }
+    </script>
+</body>
+</html>

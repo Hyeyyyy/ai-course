@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 성공</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        h1 { color: #3182f6; }
+    </style>
+</head>
+<body>
+    <h1>✅ 결제 성공</h1>
+    <p>결제가 완료되었습니다. 상세 정보는 아래와 같습니다.</p>
+    
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>항목</th>
+                <th>값</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableBody = document.querySelector("#result-table tbody");
+
+        // 성공 시 전달받는 주요 파라미터 목록
+        const paramsToDisplay = [
+            "paymentKey", 
+            "orderId", 
+            "amount", 
+            "successUrl"
+        ];
+
+        // 쿼리 스트링의 모든 항목을 보여주고 싶다면 아래 주석 해제
+        // urlParams.forEach((value, key) => {
+        //     const row = `<tr><td>${key}</td><td>${value}</td></tr>`;
+        //     tableBody.innerHTML += row;
+        // });
+
+        // 지정된 파라미터 위주로 출력
+        paramsToDisplay.forEach(param => {
+            const value = urlParams.get(param);
+            if (value !== null) {
+                const row = `<tr><td>${param}</td><td>${value}</td></tr>`;
+                tableBody.innerHTML += row;
+            }
+        });
+
+        // 만약 아무것도 없다면 안내 메시지
+        if (tableBody.innerHTML === "") {
+            tableBody.innerHTML = "<tr><td colspan='2'>전달된 데이터가 없습니다.</td></tr>";
+        }
+    </script>
+</body>
+</html>
