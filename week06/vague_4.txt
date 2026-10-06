@@ -1,0 +1,109 @@
+전화번호를 어떤 형식으로 정리하고 싶으신가요? 보통 가장 많이 쓰이는 방식은 **"숫자만 추출하기"** 또는 **"하이픈(-)을 넣어서 표준 형식으로 만들기"**입니다.
+
+Python을 사용하여 세 가지 주요 상황에 맞는 함수를 만들어 보았습니다.
+
+---
+
+### 1. 숫자만 남기고 모두 제거하기 (Cleaning)
+입력값에 공백, 하이픈, 특수문자가 섞여 있어도 숫자만 깔끔하게 뽑아냅니다.
+
+```python
+import re
+
+def clean_phone_number(phone):
+    # 숫자가 아닌 모든 문자를 제거 (\D는 non-digit을 의미)
+    return re.sub(r'\D', '', phone)
+
+# 테스트
+print(clean_phone_number("010-1234-5678"))  # 01012345678
+print(clean_phone_number("010 1234 5678"))  # 01012345678
+print(clean_phone_number("(010)12345678")) # 01012345678
+```
+
+---
+
+### 2. 표준 형식으로 변환하기 (Formatting)
+숫자만 있는 문자열을 받아서 `010-XXXX-XXXX` 형태로 예쁘게 만들어줍니다. 한국 휴대폰 번호 기준입니다.
+
+```python
+import re
+
+def format_phone_number(phone):
+    # 1. 먼저 숫자만 추출
+    digits = re.sub(r'\D', '', phone)
+    
+    # 2. 길이에 따라 하이픈 삽입 (휴대폰 번호 11자리 기준)
+    if len(digits) == 11:
+        return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+    elif len(digits) == 10:
+        # 02-123-4567 같은 번호 처리
+        return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+    else:
+        # 형식이 맞지 않으면 그냥 숫자만 반환하거나 에러 메시지
+        return digits
+
+# 테스트
+print(format_phone_number("01012345678"))      # 010-1234-5678
+print(format_phone_number("010-1234-5678"))    # 010-1234-5678
+print(format_phone_number("021234567"))        # 021-234-567
+```
+
+---
+
+### 3. 종합 선물 세트 (가장 추천하는 방식)
+데이터 정제 시 가장 안전한 방법은 **"먼저 숫자를 다 지운 뒤, 다시 형식을 맞추는 것"**입니다.
+
+```python
+import re
+
+def standardize_phone(phone):
+    """
+    입력된 전화번호의 형식이 어떻든 
+    '010-1234-5678' 형태로 통일합니다.
+    """
+    if not phone:
+        return ""
+    
+    # 숫자만 추출
+    digits = "".join(re.findall(r'\d', str(phone)))
+    
+    # 길이에 따른 포맷팅 로직
+    length = len(digits)
+    
+    if length == 11:    # 010-1234-5678
+        return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+    elif length == 10:  # 010-123-4567 또는 02-1234-5678
+        # 앞자리가 02인 경우(서울 지역번호)와 010인 경우 구분 가능하지만 
+        # 일반적인 패턴으로 처리
+        if digits.startswith('02'):
+            return f"{digits[:2]}-{digits[2:6]}-{digits[6:]}"
+        else:
+            return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+    elif length == 9:   # 02-123-4567
+        return f"{digits[:2]}-{digits[2:5]}-{digits[5:]}"
+    else:
+        return digits # 형식이 너무 짧거나 길면 숫자만 반환
+
+# 테스트 케이스
+test_list = [
+    "01012345678",
+    "010-1234-5678",
+    "010 1234 5678",
+    "(010)1234-5678",
+    "02-1234-5678",
+    "0212345678",
+    "031-123-4567"
+]
+
+for t in test_list:
+    print(f"{t}  =>  {standardize_phone(t)}")
+```
+
+### 사용 팁:
+1.  **Pandas와 함께 사용하기**: 만약 엑셀이나 CSV 파일을 정리 중이라면 다음과 같이 쓸 수 있습니다.
+    ```python
+    import pandas as pd
+    df = pd.read_csv('data.csv')
+    df['phone'] = df['phone'].apply(standardize_phone)
+    ```
+2.  **주의사항**: 해외 전화번호가 포함되어 있다면 위 로직(한국식 하이픈)을 사용하면 안 됩니다. 그럴 경우엔 단순히 `clean_phone_number` 함수만 사용하는 것이 좋습니다.

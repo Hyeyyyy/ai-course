@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>나의 할 일 목록</h1>
+        
+        <form action="/add" method="POST" class="add-form">
+            <input type="text" name="title" placeholder="새로운 할 일을 입력하세요" required>
+            <button type="submit">추가</button>
+        </form>
+
+        <ul class="todo-list">
+            {% for todo in todos %}
+                <li class="todo-item {% if todo.is_completed %}completed{% endif %}">
+                    <span class="todo-title">{{ todo.title }}</span>
+                    <span class="todo-date">{{ todo.created_at }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

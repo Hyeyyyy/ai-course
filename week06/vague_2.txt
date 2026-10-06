@@ -1,0 +1,102 @@
+전화번호를 정리하는 함수는 어떤 형식으로 만들고 싶은지에 따라 다릅니다. 가장 흔히 쓰이는 세 가지 패턴(**숫자만 추출하기**, **하이픈(-) 넣기**, **국가번호 포함하기**)에 맞춰 Python 코드를 작성해 보았습니다.
+
+### 1. 숫자만 남기고 모두 제거하기 (Cleaning)
+사용자가 `010-1234-5678`, `010.1234.5678`, `010 1234 5678` 중 무엇을 입력해도 숫자만 뽑아냅니다.
+
+```python
+import re
+
+def clean_phone_number(phone):
+    # 숫자가 아닌 모든 문자를 제거합니다.
+    return re.sub(r'\D', '', phone)
+
+# 테스트
+print(clean_phone_number("010-1234-5678"))  # 01012345678
+print(clean_phone_number("010.1234.5678"))  # 01012345678
+print(clean_phone_number("(02) 123-4567"))  # 021234567
+```
+
+---
+
+### 2. 표준 하이픈(-) 형식으로 만들기 (Formatting)
+숫자만 있는 문자열을 받아서 `010-1234-5678` 또는 `02-123-4567` 형태로 예쁘게 바꿔줍니다. 한국 전화번호 패턴을 기준으로 합니다.
+
+```python
+import re
+
+def format_phone_number(phone):
+    # 1. 먼저 숫자만 추출
+    digits = re.sub(r'\D', '', phone)
+    
+    # 2. 길이에 따른 패턴 적용
+    length = len(digits)
+    
+    if length == 11: # 010-1234-5678 형태
+        return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+    elif length == 10: # 010-123-4567 또는 02-1234-5678 형태
+        if digits.startswith('02'): # 서울 지역번호 02인 경우
+            return f"{digits[:2]}-{digits[2:6]}-{digits[6:]}"
+        else: # 일반적인 10자리 (010-123-4567 등)
+            return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+    elif length == 9: # 02-123-4567 형태
+        return f"{digits[:2]}-{digits[2:5]}-{digits[5:]}"
+    else:
+        return digits # 형식이 맞지 않으면 그냥 반환
+
+# 테스트
+print(format_phone_number("01012345678"))    # 010-1234-5678
+print(format_phone_number("021234567"))     # 02-1234-567
+print(format_phone_number("010.123.4567"))  # 010-123-4567
+```
+
+---
+
+### 3. 종합 선물 세트 (정제 + 검증 + 포맷팅)
+실제 프로젝트에서 사용하기 가장 좋은 형태입니다. 잘못된 번호인지 확인(Validation)하고 정해진 규격으로 돌려줍니다.
+
+```python
+import re
+
+def process_phone(phone):
+    """
+    전화번호를 정제하고, 유효성을 검사하여 표준 포맷으로 반환합니다.
+    결과가 유효하지 않으면 None을 반환합니다.
+    """
+    # 1. 숫자만 추출
+    digits = re.sub(r'\D', '', phone)
+    
+    # 2. 유효성 검사 (한국 번호 기준 최소 9자리 ~ 최대 11자리)
+    if not (9 <= len(digits) <= 11):
+        return None
+    
+    # 3. 포맷팅 로직
+    if len(digits) == 11:
+        return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+    elif len(digits) == 10:
+        if digits.startswith('02'):
+            return f"{digits[:2]}-{digits[2:6]}-{digits[6:]}"
+        return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+    elif len(digits) == 9:
+        return f"{digits[:2]}-{digits[2:5]}-{digits[5:]}"
+    
+    return None
+
+# 테스트 케이스
+test_list = [
+    "010-1234-5678",
+    "021234567",
+    "010.123.4567",
+    "010 1234 5678",
+    "123",          # 잘못된 번호
+    "abc-def-ghij"  # 잘못된 번호
+]
+
+for t in test_list:
+    result = process_phone(t)
+    print(f"입력: {t:15} -> 결과: {result}")
+```
+
+### 어떤 함수를 쓰면 좋을까요?
+1. **데이터베이스 저장용**: `clean_phone_number`를 사용하여 숫자만 깔끔하게 저장하는 것이 나중에 검색하거나 관리하기에 가장 좋습니다.
+2. **화면 출력용 (UI)**: `format_phone_number`를 사용하여 사용자에게 친숙한 형태로 보여줍니다.
+3. **데이터 전처리/검증용**: `process_phone`을 사용하여 잘못된 데이터를 걸러냅니다.
