@@ -59,6 +59,11 @@ h1 {
     border-bottom: 1px solid #eee;
 }
 
+.todo-content {
+    display: flex;
+    flex-direction: column;
+}
+
 .todo-item.completed .todo-title {
     text-decoration: line-through;
     color: #888;
@@ -71,4 +76,18 @@ h1 {
 .todo-date {
     font-size: 0.8rem;
     color: #999;
+}
+
+.toggle-btn {
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.toggle-btn:hover {
+    background-color: #0056b3;
 }
