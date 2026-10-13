@@ -69,6 +69,11 @@ def calculate_totals(items: list[dict]) -> dict:
         "balance": income_total - expense_total
     }
 
+
+def reset_transactions(items: list[dict]) -> None:
+    """거래 목록을 비운다."""
+    items.clear()
+
 def create_transaction(content: str, amount_text: str, transaction_type: str) -> dict:
     """
     내용과 금액과 구분을 검증하여 dict를 반환한다.
