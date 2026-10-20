@@ -24,6 +24,12 @@ class TestParkingFeeLogic(unittest.TestCase):
         # 30분(무료) + 11분(초과) = 41분 주차 -> 20분 단위로 올림하여 1000원
         self.assertEqual(calculate_parking_fee("09:00", "09:41"), 1000)
 
+    def test_additional_fee_cases(self):
+        """초과 시간 계산의 대표 사례를 확인한다."""
+        self.assertEqual(calculate_parking_fee("09:00", "09:50"), 1000)
+        self.assertEqual(calculate_parking_fee("09:00", "10:00"), 1500)
+        self.assertEqual(calculate_parking_fee("09:00", "11:00"), 4500)
+
     def test_max_fee(self):
         """최대 요금 20,000원 제한 확인"""
         # 매우 긴 시간 주차 (예: 10시간)
@@ -40,11 +46,38 @@ class TestParkingFeeLogic(unittest.TestCase):
         with self.assertRaises(ValueError):
             calculate_parking_fee("09:00", "25:00") # 유효하지 않은 시간
 
+        with self.assertRaises(ValueError):
+            calculate_parking_fee("09:00", "09:60") # 유효하지 않은 분
+
+    def test_strict_time_format(self):
+        """한 자리 시각과 빈 입력을 거부하는지 확인한다."""
+        for entry, exit_time in [
+            ("9:00", "09:30"),
+            ("0900", "09:30"),
+            ("09:0", "09:30"),
+            ("", "09:30"),
+            (None, "09:30"),
+        ]:
+            with self.assertRaises(ValueError):
+                calculate_parking_fee(entry, exit_time)
+
     def test_exit_before_entry(self):
         """출차 시간이 입차 시간보다 빠른 경우 ValueError 발생 확인"""
         with self.assertRaises(ValueError) as cm:
             calculate_parking_fee("10:00", "09:00")
         self.assertEqual(str(cm.exception), "출차 시간은 입차 시간보다 늦어야 합니다.")
 
+    def test_exit_equal_entry(self):
+        """입차와 출차가 같은 경우를 거부하는지 확인한다."""
+        with self.assertRaises(ValueError):
+            calculate_parking_fee("10:00", "10:00")
+
+    def test_empty_exit_time(self):
+        """출차 시각이 비어 있으면 거부하는지 확인한다."""
+        with self.assertRaises(ValueError):
+            calculate_parking_fee("10:00", "")
+
 if __name__ == "__main__":
-    unittest.main()
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestParkingFeeLogic)
+    result = unittest.TextTestRunner(verbosity=1).run(suite)
+    print(f"최종 결과: 통과 {result.testsRun - len(result.failures) - len(result.errors)}개, 실패 {len(result.failures) + len(result.errors)}개")

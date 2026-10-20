@@ -1,5 +1,14 @@
 import math
+import re
 from datetime import datetime
+
+
+def validate_time_format(time_str: str) -> None:
+    """시간이 정확한 HH:MM 형식인지 검사한다."""
+    if not isinstance(time_str, str) or not time_str:
+        raise ValueError("시간은 비어 있을 수 없습니다.")
+    if not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", time_str):
+        raise ValueError("시간 형식이 잘못되었습니다. HH:MM 형식이어야 합니다.")
 
 def calculate_parking_fee(entry_time_str: str, exit_time_str: str) -> int:
     """
@@ -12,15 +21,14 @@ def calculate_parking_fee(entry_time_str: str, exit_time_str: str) -> int:
     """
     time_format = "%H:%M"
 
-    try:
-        # 1. 시간 형식 검증 및 변환
-        entry_time = datetime.strptime(entry_time_str, time_format)
-        exit_time = datetime.strptime(exit_time_str, time_format)
-    except ValueError:
-        raise ValueError("시간 형식이 잘못되었습니다. HH:MM 형식이어야 합니다.")
+    validate_time_format(entry_time_str)
+    validate_time_format(exit_time_str)
+
+    entry_time = datetime.strptime(entry_time_str, time_format)
+    exit_time = datetime.strptime(exit_time_str, time_format)
 
     # 2. 출차 시간이 입차 시간보다 늦어야 함 검증
-    if exit_time < entry_time:
+    if exit_time <= entry_time:
         raise ValueError("출차 시간은 입차 시간보다 늦어야 합니다.")
 
     # 3. 총 주차 시간(분 단위) 계산
